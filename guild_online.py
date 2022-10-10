@@ -55,6 +55,8 @@ def convert_json(json_data):
 	#return json.dumps(data)
 	return data
 		
+#ROD REMIND TO WRITE ALL THE LEFTOVER INTO FUNCTIONS NEXT TIME YOU CODE PRETTY PRINT EVERYTHING!!!
+
 
 #results=compare_json("testing.json",json_data)
 right=convert_json(json_data)
@@ -68,7 +70,22 @@ ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
 #ycm = YouchamaJsonDiffer(left, right)
 ycm.diff()
 
-print(ycm.to_dict())
+dict_diff=ycm.to_dict()
+
+dict_diff.pop("just4vis:pairs",None)
+for each in dict_diff["value_changes"]:
+	name=each["right_path"].split("->")[0]
+	attribute=each["right_path"].split("->")[1]
+	msg=""
+	if attribute == "status":
+		msg="{} {} is now {}.".format(name,attribute,each["new"])
+	elif attribute == "level":
+		msg="{} {} went from {} to {}.".format(name,attribute,each["old"],each["new"])
+	else:
+		msg="{} {} went from {} to {}.".format(name,attribute,each["old"],each["new"])
+	#will need to come up with a difference program that sends the messages to discord on a sleep seconds basis
+	send_msg("rodtestingstuff", msg, webhook)
+	print(msg)
 
 
 #write_json("testing.json",json_data)
