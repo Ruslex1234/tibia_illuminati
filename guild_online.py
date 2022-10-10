@@ -7,6 +7,9 @@ import re
 import unicodedata
 import os
 import time
+import jsondiff
+from jycm.helper import make_ignore_order_func
+from jycm.jycm import YouchamaJsonDiffer
 # To work with the .env file
 
 html = ""
@@ -22,10 +25,8 @@ start = time.time()
 
 response = requests.get(url.format(bot_guild))
 json_data = response.json()
-json_data["guilds"]["guild"]["in_war"]
 guild_name=json_data["guilds"]["guild"]["name"]
 server=json_data["guilds"]["guild"]["world"]
-members_json=json_data["guilds"]["guild"]
 
 
 #List of functions
@@ -42,12 +43,37 @@ def send_msg(uname,msg,webhook_url):
 	response = webhook.execute()
 
 def compare_json(latest_file,current_data):
-	
-	
+	right=read_json(latest_file)["guilds"]["guild"]["members"]
+	left=current_data["guilds"]["guild"]["members"]
+	#result=current_data
+	return right
 
+def convert_json(json_data):
+	data= {}
+	for each in json_data["guilds"]["guild"]["members"]:
+		data[each["name"]]=each
+	#return json.dumps(data)
+	return data
+		
+
+#results=compare_json("testing.json",json_data)
+right=convert_json(json_data)
+#print(results)
+#right = json_data
+left=convert_json(read_json("testing.json"))
+write_json("testing2.json",left)
+ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func(["^data",]))
+
+
+#ycm = YouchamaJsonDiffer(left, right)
+ycm.diff()
+
+print(ycm.to_dict())
 
 
 #write_json("testing.json",json_data)
+
+
 
 
 end = time.time()
