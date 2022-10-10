@@ -8,6 +8,7 @@ import unicodedata
 import os
 import time
 import jsondiff
+import time
 from jycm.helper import make_ignore_order_func
 from jycm.jycm import YouchamaJsonDiffer
 # To work with the .env file
@@ -75,17 +76,31 @@ dict_diff=ycm.to_dict()
 dict_diff.pop("just4vis:pairs",None)
 for each in dict_diff["value_changes"]:
 	name=each["right_path"].split("->")[0]
+	hyper_name=name.replace(" ","+")
 	attribute=each["right_path"].split("->")[1]
 	msg=""
+	icon=""
 	if attribute == "status":
-		msg="{} {} is now {}.".format(name,attribute,each["new"])
+		if each["new"] == "online":
+			icon=":green_circle:"
+		else:
+			icon=":red_circle:"
+		msg="{} [{}](https://www.tibia.com/community/?name={}) {} is now {}.".format(icon,name,hyper_name,attribute,each["new"])
 	elif attribute == "level":
-		msg="{} {} went from {} to {}.".format(name,attribute,each["old"],each["new"])
+		if int(each["new"]) > int(each["old"]):
+			icon=":star2:"
+		else:
+			icon=":skull:"
+		msg="{} [{}](https://www.tibia.com/community/?name={}) {} went from {} to {}.".format(icon,name,hyper_name,attribute,each["old"],each["new"])
+	elif attribute == "rank":
+		icon=":medal:"
+		msg="{} [{}](https://www.tibia.com/community/?name={}) {} went from {} to {}.".format(icon,name,hyper_name,attribute,each["old"],each["new"])
 	else:
-		msg="{} {} went from {} to {}.".format(name,attribute,each["old"],each["new"])
+		msg="{} [{}](https://www.tibia.com/community/?name={}) went from {} to {}.".format(name,hyper_name,attribute,each["old"],each["new"])
 	#will need to come up with a difference program that sends the messages to discord on a sleep seconds basis
-	send_msg("rodtestingstuff", msg, webhook)
+	send_msg("Bastex Activity", msg, webhook)
 	print(msg)
+	time.sleep(1)
 
 
 #write_json("testing.json",json_data)
