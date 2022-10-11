@@ -19,13 +19,17 @@ total = {}
 main = {}
 maker = {}
 
+#below are the API configurations
 url="http://127.0.0.1:80/v3/guild/{}"
 bot_guild = "bastex"
-
+#useful for knowing when thing start
 start = time.time()
-
+#query
 response = requests.get(url.format(bot_guild))
 json_data = response.json()
+
+#adding value to guild_name and server for future use
+#possibly for file naming convention
 guild_name=json_data["guilds"]["guild"]["name"]
 server=json_data["guilds"]["guild"]["world"]
 
@@ -56,51 +60,48 @@ def convert_json(json_data):
 	#return json.dumps(data)
 	return data
 		
-#ROD REMIND TO WRITE ALL THE LEFTOVER INTO FUNCTIONS NEXT TIME YOU CODE PRETTY PRINT EVERYTHING!!!
 
-
-#results=compare_json("testing.json",json_data)
 right=convert_json(json_data)
-#print(results)
-#right = json_data
+
+
 left=convert_json(read_json("testing.json"))
-write_json("testing2.json",left)
-ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func(["^data",]))
+write_json("testing.json",right)
 
-
-#ycm = YouchamaJsonDiffer(left, right)
-ycm.diff()
-
-dict_diff=ycm.to_dict()
-
-dict_diff.pop("just4vis:pairs",None)
-for each in dict_diff["value_changes"]:
-	name=each["right_path"].split("->")[0]
-	hyper_name=name.replace(" ","+")
-	attribute=each["right_path"].split("->")[1]
-	msg=""
-	icon=""
-	if attribute == "status":
-		if each["new"] == "online":
-			icon=":green_circle:"
+def compare_ycm_style(old, new):
+	ycm = YouchamaJsonDiffer(old, new, ignore_order_func=make_ignore_order_func(["^data",]))
+	#ycm = YouchamaJsonDiffer(left, right)
+	ycm.diff()
+	dict_diff=ycm.to_dict()
+	dict_diff.pop("just4vis:pairs",None)
+	for each in dict_diff["value_changes"]:
+		name=each["right_path"].split("->")[0]
+		hyper_name=name.replace(" ","+")
+		attribute=each["right_path"].split("->")[1]
+		msg=""
+		icon=""
+		if attribute == "status":
+			if each["new"] == "online":
+				icon=":green_circle:"
+			else:
+				icon=":red_circle:"
+			msg="{} [{}](https://www.tibia.com/community/?name={}) {} is now {}.".format(icon,name,hyper_name,attribute,each["new"])
+		elif attribute == "level":
+			if int(each["new"]) > int(each["old"]):
+				icon=":star2:"
+			else:
+				icon=":skull:"
+			msg="{} [{}](https://www.tibia.com/community/?name={}) {} went from {} to {}.".format(icon,name,hyper_name,attribute,each["old"],each["new"])
+		elif attribute == "rank":
+			icon=":medal:"
+			msg="{} [{}](https://www.tibia.com/community/?name={}) {} went from {} to {}.".format(icon,name,hyper_name,attribute,each["old"],each["new"])
 		else:
-			icon=":red_circle:"
-		msg="{} [{}](https://www.tibia.com/community/?name={}) {} is now {}.".format(icon,name,hyper_name,attribute,each["new"])
-	elif attribute == "level":
-		if int(each["new"]) > int(each["old"]):
-			icon=":star2:"
-		else:
-			icon=":skull:"
-		msg="{} [{}](https://www.tibia.com/community/?name={}) {} went from {} to {}.".format(icon,name,hyper_name,attribute,each["old"],each["new"])
-	elif attribute == "rank":
-		icon=":medal:"
-		msg="{} [{}](https://www.tibia.com/community/?name={}) {} went from {} to {}.".format(icon,name,hyper_name,attribute,each["old"],each["new"])
-	else:
-		msg="{} [{}](https://www.tibia.com/community/?name={}) went from {} to {}.".format(name,hyper_name,attribute,each["old"],each["new"])
-	#will need to come up with a difference program that sends the messages to discord on a sleep seconds basis
-	send_msg("Bastex Activity", msg, webhook)
-	print(msg)
-	time.sleep(1)
+			msg="{} [{}](https://www.tibia.com/community/?name={}) went from {} to {}.".format(name,hyper_name,attribute,each["old"],each["new"])
+		#will need to come up with a difference program that sends the messages to discord on a sleep seconds basis
+		#send_msg("Bastex Activity", msg, webhook)
+		print(msg)
+		time.sleep(1)
+
+
 
 
 #write_json("testing.json",json_data)
